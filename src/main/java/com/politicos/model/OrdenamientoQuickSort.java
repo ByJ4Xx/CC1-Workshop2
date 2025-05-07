@@ -37,46 +37,40 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
      */
     private long comparaciones;
     private long intercambios;
-    private long tiempoInicio;
-    private long tiempoFin;
+    private long tiempoEjecucion;
+
+    public long getComparaciones() { return comparaciones; }
+    public long getIntercambios()  { return intercambios; }
+    public long getTiempoEjecucion() { return tiempoEjecucion; }
+    
+    private void inicializarContadores() {
+        comparaciones = 0;
+        intercambios = 0;
+    }
 
     /**
      * Inicializa los contadores antes de comenzar el ordenamiento.
      */
-    private void inicializarContadores() {
-        comparaciones = 0;
-        intercambios = 0;
-        tiempoInicio = 0;
-        tiempoFin = 0;
-    }
-
-    public long getComparaciones() {
-        return comparaciones;
-    }
-
-    public long getIntercambios() {
-        return intercambios;
-    }
-
-    public long getTiempoEjecucion() {
-        return tiempoFin - tiempoInicio;
-    }
 
     // --- QuickSort para Lista Enlazada Simple ---
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimple<T> lista) {
-        inicializarContadores();
         Objects.requireNonNull(lista, "La lista a ordenar no puede ser null.");
-
-        tiempoInicio = System.nanoTime();
+        inicializarContadores();
+        long inicio = System.nanoTime();
         Nodo<T> cabeza = lista.getCabeza();
         Nodo<T> cola = encontrarColaSimple(cabeza);
 
         quickSortRecursivoSimple(cabeza, cola);
 
         lista.setCabeza(cabeza);
-        tiempoFin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        long fin = System.nanoTime();
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     private Nodo<T> encontrarColaSimple(Nodo<T> nodo) {
@@ -145,10 +139,9 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
     // --- QuickSort para Lista Enlazada Doble ---
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaDoble<T> lista) {
-        inicializarContadores();
         Objects.requireNonNull(lista, "La lista a ordenar no puede ser null.");
-
-        tiempoInicio = System.nanoTime();
+        inicializarContadores();
+        long inicio = System.nanoTime();
         NodoDoble<T> cabeza = lista.getCabeza();
         NodoDoble<T> cola = lista.cola;
 
@@ -161,8 +154,13 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
         } else {
             lista.cola = null;
         }
-        tiempoFin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        long fin = System.nanoTime();
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     private NodoDoble<T> encontrarColaDoble(NodoDoble<T> nodo) {
@@ -231,110 +229,39 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
         return resultado;
     }
 
-    // --- QuickSort para Lista Enlazada Simple Circular ---
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimpleCircular<T> lista) {
+        Objects.requireNonNull(lista, "La lista circular no puede ser null.");
         inicializarContadores();
-        Objects.requireNonNull(lista, "La lista a ordenar no puede ser null.");
+        long inicio = System.nanoTime();
 
-        if (lista.getTamanno() <= 1) {
-            return new ResultadoOrdenamiento(0, 0, 0);
+        // 1) Romper la circularidad
+        Nodo<T> head = lista.getCabeza();
+        Nodo<T> tail = head;
+        while (tail.getSiguiente() != head) {
+            tail = tail.getSiguiente();
         }
+        tail.setSiguiente(null);
 
-        tiempoInicio = System.nanoTime();
+        // 2) QuickSort sobre lista lineal
+        quickSortRecursivoSimple(head, tail);
 
-        // Romper temporalmente la circularidad para ordenar
-        Nodo<T> cabeza = lista.getCabeza();
-        Nodo<T> ultimo = lista.ultimo;
-        if (ultimo != null) {
-            ultimo.setSiguiente(null);
+        // 3) Restaurar circularidad
+        Nodo<T> newTail = head;
+        while (newTail.getSiguiente() != null) {
+            newTail = newTail.getSiguiente();
         }
-
-        // Ordenar como lista simple
-        cabeza = quickSortListaSimple(cabeza);
-
-        // Restablecer la circularidad
-        if (cabeza != null) {
-            ultimo = encontrarColaSimple(cabeza);
-            ultimo.setSiguiente(cabeza);
-            lista.ultimo = ultimo;
-            lista.setCabeza(cabeza); // Actualizar la cabeza por si cambió
-        } else {
-            lista.ultimo = null;
-        }
-
-        tiempoFin = System.nanoTime();
+        newTail.setSiguiente(head);
+        lista.ultimo = newTail;
+        
+        long fin = System.nanoTime();
+        tiempoEjecucion = fin - inicio;
         return new ResultadoOrdenamiento(
-            (tiempoFin - tiempoInicio) / 1_000_000.0, 
-            comparaciones, 
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
             intercambios
         );
     }
-    private Nodo<T> quickSortListaSimple(Nodo<T> cabeza) {
-    if (cabeza == null || cabeza.getSiguiente() == null) {
-        return cabeza;
-    }
-
-    Nodo<T> cola = encontrarColaSimple(cabeza);
-    Nodo<T>[] particion = particionarSimple(cabeza, cola);
-    Nodo<T> pivote = particion[0];
-    Nodo<T> antesPivote = particion[1];
-
-    // Ordenar sublista izquierda
-    Nodo<T> izquierda = null;
-    if (antesPivote != null) {
-        antesPivote.setSiguiente(null);
-        izquierda = quickSortListaSimple(cabeza);
-        encontrarColaSimple(izquierda).setSiguiente(pivote);
-    } else {
-        izquierda = pivote;
-    }
-
-    // Ordenar sublista derecha
-    Nodo<T> derecha = null;
-    if (pivote.getSiguiente() != null) {
-        derecha = quickSortListaSimple(pivote.getSiguiente());
-    }
-    pivote.setSiguiente(derecha);
-
-    return izquierda;
-}
-
-    private Nodo<T>[] particionarCircular(Nodo<T> cabeza, Nodo<T> cola) {
-        T valorPivote = cola.getDato();
-        Nodo<T> i = null;
-        Nodo<T> actual = cabeza;
-
-        while (actual != cola) {
-            comparaciones++;
-            if (actual.getDato().compareTo(valorPivote) < 0) {
-                i = (i == null) ? cabeza : i.getSiguiente();
-                intercambiarDatos(actual, i);
-                intercambios++;
-            }
-            actual = actual.getSiguiente();
-        }
-
-        i = (i == null) ? cabeza : i.getSiguiente();
-        intercambiarDatos(cola, i);
-        intercambios++;
-
-        Nodo<T> nodoAntesPivote = null;
-        if (i != cabeza) {
-            Nodo<T> buscador = cabeza;
-            while (buscador != null && buscador.getSiguiente() != i) {
-                buscador = buscador.getSiguiente();
-            }
-            nodoAntesPivote = buscador;
-        }
-
-        @SuppressWarnings("unchecked")
-        Nodo<T>[] resultado = (Nodo<T>[]) new Nodo<?>[2];
-        resultado[0] = i;
-        resultado[1] = nodoAntesPivote;
-        return resultado;
-    }
-
     /**
      * Método auxiliar para intercambiar datos entre dos nodos.
      */
@@ -351,13 +278,5 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
         T temp = a.getDato();
         a.setDato(b.getDato());
         b.setDato(temp);
-    }
-
-    /**
-     * Imprime las estadísticas del ordenamiento.
-     */
-    private void imprimirEstadisticas() {
-        System.out.printf("Comparaciones: %d | Intercambios: %d | Tiempo: %.3f ms%n",
-                comparaciones, intercambios, (tiempoFin - tiempoInicio) / 1_000_000.0);
     }
 }

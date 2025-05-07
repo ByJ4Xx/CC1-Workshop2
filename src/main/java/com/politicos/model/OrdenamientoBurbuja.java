@@ -22,36 +22,25 @@ import java.util.Objects;
  * @version 1.1
  */
 public class OrdenamientoBurbuja<T extends Comparable<T>> implements EstrategiaOrdenamiento<T> {
-    
     private long comparaciones;
     private long intercambios;
     private long tiempoEjecucion;
-
-    public long getComparaciones() { return comparaciones; }
-    public long getIntercambios() { return intercambios; }
-    public long getTiempoEjecucion() { return tiempoEjecucion; }
-    /**
-     * Ordena la lista dada usando el algoritmo de Burbuja mediante intercambio de datos.
-     *
-     * @param lista La lista {@link ListaEnlazadaSimple} a ordenar. No debe ser null.
-     * @throws NullPointerException si {@code lista} es null.
-     * @throws ClassCastException si los elementos no son {@code Comparable}.
-     * @throws UnsupportedOperationException si {@link Nodo#setDato(Object)} no está disponible (implícito).
-     */
+    
+    private void inicializarContadores() {
+        comparaciones = 0;
+        intercambios = 0;
+    }
 
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimple<T> lista) {
-        Objects.requireNonNull(lista);
-        int comparaciones = 0, intercambios = 0;
+        Objects.requireNonNull(lista, "La lista a ordenar no puede ser null");
+        inicializarContadores();
         long inicio = System.nanoTime();
 
         int n = lista.getTamanno();
-        boolean intercambio;
-
         for (int i = 0; i < n - 1; i++) {
+            boolean intercambio = false;
             Nodo<T> actual = lista.getCabeza();
-            intercambio = false;
-
             for (int j = 0; j < n - i - 1; j++) {
                 comparaciones++;
                 Nodo<T> siguiente = actual.getSiguiente();
@@ -66,22 +55,26 @@ public class OrdenamientoBurbuja<T extends Comparable<T>> implements EstrategiaO
             }
             if (!intercambio) break;
         }
+
         long fin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
+
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaDoble<T> lista) {
-        Objects.requireNonNull(lista);
-        int comparaciones = 0, intercambios = 0;
+        Objects.requireNonNull(lista, "La lista a ordenar no puede ser null");
+        inicializarContadores();
         long inicio = System.nanoTime();
 
         int n = lista.getTamanno();
-        boolean intercambio;
-
         for (int i = 0; i < n - 1; i++) {
+            boolean intercambio = false;
             NodoDoble<T> actual = lista.getCabeza();
-            intercambio = false;
-
             for (int j = 0; j < n - i - 1; j++) {
                 comparaciones++;
                 NodoDoble<T> siguiente = actual.getSiguiente();
@@ -98,38 +91,48 @@ public class OrdenamientoBurbuja<T extends Comparable<T>> implements EstrategiaO
         }
 
         long fin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
+
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimpleCircular<T> lista) {
-        Objects.requireNonNull(lista);
-        int comparaciones = 0, intercambios = 0;
+        Objects.requireNonNull(lista, "La lista a ordenar no puede ser null");
+        inicializarContadores();
         long inicio = System.nanoTime();
 
         int n = lista.getTamanno();
-        boolean intercambio;
-
-        for (int i = 0; i < n - 1; i++) {
-            Nodo<T> actual = lista.getCabeza();
-            intercambio = false;
-
-            for (int j = 0; j < n - i - 1; j++) {
-                Nodo<T> siguiente = actual.getSiguiente();
-                comparaciones++;
-                if (actual.getDato().compareTo(siguiente.getDato()) > 0) {
-                    T temp = actual.getDato();
-                    actual.setDato(siguiente.getDato());
-                    siguiente.setDato(temp);
-                    intercambios++;
-                    intercambio = true;
+        if (n > 1) {
+            for (int i = 0; i < n - 1; i++) {
+                boolean intercambio = false;
+                Nodo<T> actual = lista.getCabeza();
+                for (int j = 0; j < n - i - 1; j++) {
+                    comparaciones++;
+                    Nodo<T> siguiente = actual.getSiguiente();
+                    if (actual.getDato().compareTo(siguiente.getDato()) > 0) {
+                        T temp = actual.getDato();
+                        actual.setDato(siguiente.getDato());
+                        siguiente.setDato(temp);
+                        intercambios++;
+                        intercambio = true;
+                    }
+                    actual = siguiente;
                 }
-                actual = siguiente;
+                if (!intercambio) break;
             }
-            if (!intercambio) break;
         }
 
         long fin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 }
 

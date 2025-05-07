@@ -4,7 +4,7 @@
  */
 package com.politicos.controller;
 
-import com.politicos.model.GeneradorListasAleatorias;
+import com.politicos.model.GeneradorListas;
 
 /**
  *
@@ -33,15 +33,9 @@ public class Controller {
         estadisticasInversoSimple = new EstadisticasOrdenamiento();
         estadisticasInversoDoble = new EstadisticasOrdenamiento();
         estadisticasInversoCircular = new EstadisticasOrdenamiento();
-        // 1. Generar listas ALEATORIAS (simple, doble, circular)
-        System.out.println("\t\t\t==== LISTAS ALEATORIAS ====");
-        GeneradorListasAleatorias generadorAleatorio = new GeneradorListasAleatorias();
-        generadorAleatorio.generarListas(100, 1.5, estadisticasAleatorioSimple, estadisticasAleatorioDoble, estadisticasAleatorioCircular);
-        System.out.println("\t\t\t==== LISTAS Inversas ====");
-        GeneradorListasInversas generadorInverso = new GeneradorListasInversas();
-        generadorInverso.generarListas(100, 1.5,estadisticasInversoSimple, estadisticasInversoDoble, estadisticasInversoCircular);
-        System.out.println("\t\t\t==== LISTAS Ordenadas ====");
-        GeneradorListasOrdenadas generadorOrdenado = new GeneradorListasOrdenadas();
-        generadorOrdenado.generarListas(100, 1.5, estadisticasOrdenadoSimple, estadisticasOrdenadoDoble, estadisticasOrdenadoCircular);
+        // Generar listas y ordenar
+
+        GeneradorListas generador = new GeneradorListas();
+        generador.ejecutar(100, 1.5, estadisticasAleatorioSimple, estadisticasAleatorioDoble, estadisticasAleatorioCircular, estadisticasOrdenadoSimple, estadisticasOrdenadoDoble, estadisticasOrdenadoCircular, estadisticasInversoSimple, estadisticasInversoDoble, estadisticasInversoCircular);
     }
 }

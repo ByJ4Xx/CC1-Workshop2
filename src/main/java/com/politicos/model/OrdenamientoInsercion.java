@@ -22,136 +22,155 @@ import java.util.Objects;
  */
 public class OrdenamientoInsercion<T extends Comparable<T>> implements EstrategiaOrdenamiento<T> {
 
-    /** Referencia a la cabeza de la sublista ordenada que se está construyendo. */
     private Nodo<T> cabezaOrdenada;
-
-    /**
-     * Ordena la lista dada usando el algoritmo de Inserción, re-enlazando nodos.
-     *
-     * @param lista La lista {@link ListaEnlazadaSimple} a ordenar. No debe ser null.
-     * @throws NullPointerException si {@code lista} es null.
-     * @throws ClassCastException si los elementos no son {@code Comparable}.
-     */
     private long comparaciones;
     private long intercambios;
     private long tiempoEjecucion;
 
-    public long getComparaciones() { return comparaciones; }
-    public long getIntercambios() { return intercambios; }
-    public long getTiempoEjecucion() { return tiempoEjecucion; }
+    private void inicializarContadores() {
+        comparaciones = 0;
+        intercambios = 0;
+    }
 
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimple<T> lista) {
-        comparaciones = 0;
-        intercambios = 0;
+        Objects.requireNonNull(lista, "La lista no puede ser null.");
 
+        inicializarContadores();
+        long inicioNano = System.nanoTime();
+
+        cabezaOrdenada = null;
         Nodo<T> actualOriginal = lista.getCabeza();
-        this.cabezaOrdenada = null;
-
         while (actualOriginal != null) {
             comparaciones++;
             Nodo<T> siguienteOriginal = actualOriginal.getSiguiente();
+            actualOriginal.setSiguiente(null);
             insertarEnOrden(actualOriginal);
             actualOriginal = siguienteOriginal;
         }
 
-        lista.setCabeza(this.cabezaOrdenada);
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        lista.setCabeza(cabezaOrdenada);
+        tiempoEjecucion = System.nanoTime() - inicioNano;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaDoble<T> lista) {
-        comparaciones = 0;
-        intercambios = 0;
+        Objects.requireNonNull(lista, "La lista no puede ser null.");
 
-        NodoDoble<T> cabezaOrdenada = null;
+        inicializarContadores();
+        long inicioNano = System.nanoTime();
+
+        NodoDoble<T> cabezaOrdDoble = null;
         NodoDoble<T> actual = lista.getCabeza();
-
         while (actual != null) {
             comparaciones++;
             NodoDoble<T> siguiente = actual.getSiguiente();
-            
-            if (cabezaOrdenada == null || cabezaOrdenada.getDato().compareTo(actual.getDato()) >= 0) {
-                actual.setAnterior(null);
-                actual.setSiguiente(cabezaOrdenada);
-                if (cabezaOrdenada != null) {
-                    cabezaOrdenada.setAnterior(actual);
-                }
-                cabezaOrdenada = actual;
+            // Desconectar
+            actual.setAnterior(null);
+            actual.setSiguiente(null);
+
+            // Insertar en cabezaOrdDoble
+            if (cabezaOrdDoble == null ||
+                cabezaOrdDoble.getDato().compareTo(actual.getDato()) >= 0)
+            {
+                actual.setSiguiente(cabezaOrdDoble);
+                if (cabezaOrdDoble != null) cabezaOrdDoble.setAnterior(actual);
+                cabezaOrdDoble = actual;
                 intercambios++;
             } else {
-                NodoDoble<T> temp = cabezaOrdenada;
-                while (temp.getSiguiente() != null && temp.getSiguiente().getDato().compareTo(actual.getDato()) < 0) {
+                NodoDoble<T> temp = cabezaOrdDoble;
+                while (temp.getSiguiente() != null &&
+                       temp.getSiguiente().getDato().compareTo(actual.getDato()) < 0)
+                {
                     comparaciones++;
                     temp = temp.getSiguiente();
                 }
                 actual.setSiguiente(temp.getSiguiente());
-                if (temp.getSiguiente() != null) {
-                    temp.getSiguiente().setAnterior(actual);
-                }
+                if (temp.getSiguiente() != null) temp.getSiguiente().setAnterior(actual);
                 temp.setSiguiente(actual);
                 actual.setAnterior(temp);
                 intercambios++;
             }
+
             actual = siguiente;
         }
 
-        lista.setCabeza(cabezaOrdenada);
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        lista.setCabeza(cabezaOrdDoble);
+        tiempoEjecucion = System.nanoTime() - inicioNano;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimpleCircular<T> lista) {
-        comparaciones = 0;
-        intercambios = 0;
+        Objects.requireNonNull(lista, "La lista circular no puede ser null.");
 
-        Nodo<T> cabezaOrdenada = null;
-        Nodo<T> actual = lista.getCabeza();
-        int tamanno = lista.getTamanno();
-        
-        for (int i = 0; i < tamanno; i++) {
+        inicializarContadores();
+        long inicioNano = System.nanoTime();
+
+        // Si 0 o 1 elemento, nada que hacer
+        if (lista.getTamanno() <= 1) {
+            tiempoEjecucion = System.nanoTime() - inicioNano;
+            return new ResultadoOrdenamiento(
+                tiempoEjecucion / 1_000_000.0,
+                comparaciones,
+                intercambios
+            );
+        }
+
+        // 1) Romper ciclo
+        Nodo<T> head = lista.getCabeza();
+        Nodo<T> tail = lista.ultimo;
+        tail.setSiguiente(null);
+
+        // 2) Insertion Sort lineal
+        cabezaOrdenada = null;
+        Nodo<T> curr = head;
+        while (curr != null) {
             comparaciones++;
-            Nodo<T> siguiente = actual.getSiguiente();
-            
-            if (cabezaOrdenada == null || cabezaOrdenada.getDato().compareTo(actual.getDato()) >= 0) {
-                actual.setSiguiente(cabezaOrdenada);
-                cabezaOrdenada = actual;
-                intercambios++;
-            } else {
-                Nodo<T> temp = cabezaOrdenada;
-                while (temp.getSiguiente() != null && 
-                       temp.getSiguiente().getDato().compareTo(actual.getDato()) < 0) {
-                    comparaciones++;
-                    temp = temp.getSiguiente();
-                }
-                actual.setSiguiente(temp.getSiguiente());
-                temp.setSiguiente(actual);
-                intercambios++;
-            }
-            actual = siguiente;
-            
+            Nodo<T> next = curr.getSiguiente();
+            curr.setSiguiente(null);
+            insertarEnOrden(curr);
+            curr = next;
         }
 
-        Nodo<T> nuevoUltimo = cabezaOrdenada;
-        while (nuevoUltimo.getSiguiente() != null) {
-            nuevoUltimo = nuevoUltimo.getSiguiente();
+        // 3) Restaurar ciclo
+        Nodo<T> nuevoHead = cabezaOrdenada;
+        Nodo<T> nuevoTail = nuevoHead;
+        while (nuevoTail.getSiguiente() != null) {
+            nuevoTail = nuevoTail.getSiguiente();
         }
-        nuevoUltimo.setSiguiente(cabezaOrdenada);
-        
-        lista.setCabeza(cabezaOrdenada);
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        nuevoTail.setSiguiente(nuevoHead);
+        lista.ultimo = nuevoTail;
+
+        tiempoEjecucion = System.nanoTime() - inicioNano;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     private void insertarEnOrden(Nodo<T> nodoAInsertar) {
-        if (this.cabezaOrdenada == null ||
-            this.cabezaOrdenada.getDato().compareTo(nodoAInsertar.getDato()) >= 0) {
-            nodoAInsertar.setSiguiente(this.cabezaOrdenada);
-            this.cabezaOrdenada = nodoAInsertar;
+        if (cabezaOrdenada == null ||
+            cabezaOrdenada.getDato().compareTo(nodoAInsertar.getDato()) >= 0)
+        {
+            nodoAInsertar.setSiguiente(cabezaOrdenada);
+            cabezaOrdenada = nodoAInsertar;
             intercambios++;
         } else {
-            Nodo<T> actualOrdenado = this.cabezaOrdenada;
+            Nodo<T> actualOrdenado = cabezaOrdenada;
             while (actualOrdenado.getSiguiente() != null &&
-                   actualOrdenado.getSiguiente().getDato().compareTo(nodoAInsertar.getDato()) < 0) {
+                   actualOrdenado.getSiguiente().getDato().compareTo(nodoAInsertar.getDato()) < 0)
+            {
                 comparaciones++;
                 actualOrdenado = actualOrdenado.getSiguiente();
             }
@@ -161,3 +180,4 @@ public class OrdenamientoInsercion<T extends Comparable<T>> implements Estrategi
         }
     }
 }
+

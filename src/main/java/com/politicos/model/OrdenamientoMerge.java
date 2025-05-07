@@ -31,8 +31,7 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
      */
     private long comparaciones;
     private long intercambios;
-    private long tiempoInicio;
-    private long tiempoFin;
+    private long tiempoEjecucion;
 
     /**
      * Inicializa los contadores antes de comenzar el ordenamiento.
@@ -40,15 +39,10 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
     private void inicializarContadores() {
         comparaciones = 0;
         intercambios = 0;
-        tiempoInicio = 0;
-        tiempoFin = 0;
     }
 
     public long getComparaciones() { return comparaciones; }
     public long getIntercambios() { return intercambios; }
-    public long getTiempoEjecucion() { 
-        return tiempoFin-tiempoInicio; 
-    }
 
     // --- MergeSort para Lista Enlazada Simple ---
     @Override
@@ -56,12 +50,17 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
         inicializarContadores();
         Objects.requireNonNull(lista, "La lista a ordenar no puede ser null.");
 
-        tiempoInicio = System.nanoTime();
+        long inicio = System.nanoTime();
         Nodo<T> cabeza = lista.getCabeza();
         cabeza = mergeSortSimple(cabeza);
         lista.setCabeza(cabeza);
-        tiempoFin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        long fin = System.nanoTime();
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     private Nodo<T> mergeSortSimple(Nodo<T> cabeza) {
@@ -126,7 +125,7 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
         inicializarContadores();
         Objects.requireNonNull(lista, "La lista a ordenar no puede ser null.");
 
-        tiempoInicio = System.nanoTime();
+        long inicio = System.nanoTime();
         NodoDoble<T> cabeza = lista.getCabeza();
         cabeza = mergeSortDoble(cabeza);
         lista.setCabeza(cabeza);
@@ -141,8 +140,13 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
         } else {
             lista.cola = null;
         }
-        tiempoFin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
+        long fin = System.nanoTime();
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 
     private NodoDoble<T> mergeSortDoble(NodoDoble<T> cabeza) {
@@ -216,7 +220,7 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
         inicializarContadores();
         Objects.requireNonNull(lista, "La lista a ordenar no puede ser null.");
 
-        tiempoInicio = System.nanoTime();
+        long inicio = System.nanoTime();
         
         // Convertir temporalmente la lista circular en simple
         Nodo<T> cabeza = lista.getCabeza();
@@ -240,15 +244,12 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
             lista.ultimo = null;
         }
         
-        tiempoFin = System.nanoTime();
-        return new ResultadoOrdenamiento(getTiempoEjecucion(),getComparaciones(), getIntercambios());
-    }
-
-    /**
-     * Imprime las estadísticas del ordenamiento.
-     */
-    private void imprimirEstadisticas() {
-        System.out.printf("Comparaciones: %d | Fusiones: %d | Tiempo: %.3f ms%n",
-                comparaciones, intercambios, (tiempoFin - tiempoInicio) / 1_000_000.0);
+        long fin = System.nanoTime();
+        tiempoEjecucion = fin - inicio;
+        return new ResultadoOrdenamiento(
+            tiempoEjecucion / 1_000_000.0,
+            comparaciones,
+            intercambios
+        );
     }
 }
