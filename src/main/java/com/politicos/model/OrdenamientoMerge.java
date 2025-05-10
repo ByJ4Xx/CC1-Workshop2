@@ -82,25 +82,26 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
     }
 
     private Nodo<T> fusionarSimple(Nodo<T> a, Nodo<T> b) {
-        Nodo<T> resultado = null;
+        Nodo<T> dummy = new Nodo<>(null);
+        Nodo<T> tail = dummy;
 
-        if (a == null) {
-            return b;
-        }
-        if (b == null) {
-            return a;
+        while (a != null && b != null) {
+            comparaciones++;
+            if (a.getDato().compareTo(b.getDato()) <= 0) {
+                tail.setSiguiente(a);
+                a = a.getSiguiente();
+            } else {
+                tail.setSiguiente(b);
+                b = b.getSiguiente();
+            }
+            tail = tail.getSiguiente();
+            intercambios++;
         }
 
-        comparaciones++;
-        if (a.getDato().compareTo(b.getDato()) <= 0) {
-            resultado = a;
-            resultado.setSiguiente(fusionarSimple(a.getSiguiente(), b));
-        } else {
-            resultado = b;
-            resultado.setSiguiente(fusionarSimple(a, b.getSiguiente()));
-        }
-        intercambios++;
-        return resultado;
+        // Agregar el resto de la lista que no está vacía
+        tail.setSiguiente((a != null) ? a : b);
+
+        return dummy.getSiguiente();
     }
 
     private Nodo<T> obtenerMitadSimple(Nodo<T> cabeza) {
@@ -171,31 +172,39 @@ public class OrdenamientoMerge<T extends Comparable<T>> implements EstrategiaOrd
     }
 
     private NodoDoble<T> fusionarDoble(NodoDoble<T> a, NodoDoble<T> b) {
-        NodoDoble<T> resultado = null;
+        NodoDoble<T> dummy = new NodoDoble<>(null);
+        NodoDoble<T> tail = dummy;
 
-        if (a == null) {
-            return b;
-        }
-        if (b == null) {
-            return a;
+        while (a != null && b != null) {
+            comparaciones++;
+            if (a.getDato().compareTo(b.getDato()) <= 0) {
+                tail.setSiguiente(a);
+                a.setAnterior(tail);
+                a = a.getSiguiente();
+            } else {
+                tail.setSiguiente(b);
+                b.setAnterior(tail);
+                b = b.getSiguiente();
+            }
+            tail = tail.getSiguiente();
+            intercambios++;
         }
 
-        comparaciones++;
-        if (a.getDato().compareTo(b.getDato()) <= 0) {
-            resultado = a;
-            resultado.setSiguiente(fusionarDoble(a.getSiguiente(), b));
-            if (resultado.getSiguiente() != null) {
-                resultado.getSiguiente().setAnterior(resultado);
-            }
-        } else {
-            resultado = b;
-            resultado.setSiguiente(fusionarDoble(a, b.getSiguiente()));
-            if (resultado.getSiguiente() != null) {
-                resultado.getSiguiente().setAnterior(resultado);
-            }
+        NodoDoble<T> restante = (a != null) ? a : b;
+        while (restante != null) {
+            tail.setSiguiente(restante);
+            restante.setAnterior(tail);
+            tail = restante;
+            restante = restante.getSiguiente();
+            intercambios++;
         }
-        intercambios++;
-        return resultado;
+
+        NodoDoble<T> cabezaOrdenada = dummy.getSiguiente();
+        if (cabezaOrdenada != null) {
+            cabezaOrdenada.setAnterior(null); // Asegurar que el primer nodo no tenga anterior
+        }
+
+        return cabezaOrdenada;
     }
 
     private NodoDoble<T> obtenerMitadDoble(NodoDoble<T> cabeza) {

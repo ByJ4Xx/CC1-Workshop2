@@ -102,6 +102,10 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
     }
 
     private Nodo<T>[] particionarSimple(Nodo<T> cabeza, Nodo<T> cola) {
+        // Elegir pivote aleatorio para evitar peor caso
+        Nodo<T> pivote = obtenerPivoteAleatorio(cabeza, cola);
+        intercambiarDatos(pivote, cola); // mover pivote al final
+
         T valorPivote = cola.getDato();
         Nodo<T> i = null;
         Nodo<T> actual = cabeza;
@@ -131,10 +135,25 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
 
         @SuppressWarnings("unchecked")
         Nodo<T>[] resultado = (Nodo<T>[]) new Nodo<?>[2];
-        resultado[0] = i;
-        resultado[1] = nodoAntesPivote;
+        resultado[0] = i;               // pivote final
+        resultado[1] = nodoAntesPivote; // antes del pivote
         return resultado;
     }
+    
+    private Nodo<T> obtenerPivoteAleatorio(Nodo<T> inicio, Nodo<T> fin) {
+    int longitud = 0;
+    Nodo<T> actual = inicio;
+    while (actual != fin.getSiguiente()) {
+        longitud++;
+        actual = actual.getSiguiente();
+    }
+    int paso = (int) (Math.random() * longitud);
+    actual = inicio;
+    for (int i = 0; i < paso; i++) {
+        actual = actual.getSiguiente();
+    }
+    return actual;
+}
 
     // --- QuickSort para Lista Enlazada Doble ---
     @Override
@@ -174,11 +193,6 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
     }
 
     private ResultadoOrdenamiento quickSortRecursivoDoble(NodoDoble<T> cabezaSubLista, NodoDoble<T> colaSubLista) {
-        /*
-        if (cabezaSubLista == null || colaSubLista == null || cabezaSubLista == colaSubLista || cabezaSubLista == colaSubLista.getSiguiente()) {
-            return;
-        }
-        Creo que lo anterior es innecesariopero noestoy seguro*/
 
         NodoDoble<T>[] resultadoParticion = particionarDoble(cabezaSubLista, colaSubLista);
         NodoDoble<T> nodoPivoteFinal = resultadoParticion[0];
@@ -195,32 +209,28 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
     }
 
     private NodoDoble<T>[] particionarDoble(NodoDoble<T> cabeza, NodoDoble<T> cola) {
+        NodoDoble<T> pivote = obtenerPivoteAleatorioDoble(cabeza, cola);
+        intercambiarDatosDoble(pivote, cola);  // Mover el pivote al final
+
         T valorPivote = cola.getDato();
-        NodoDoble<T> i = null;
+        NodoDoble<T> i = cabeza.getAnterior();
         NodoDoble<T> actual = cabeza;
 
         while (actual != cola) {
             comparaciones++;
             if (actual.getDato().compareTo(valorPivote) < 0) {
                 i = (i == null) ? cabeza : i.getSiguiente();
-                intercambiarDatos(actual, i);
+                intercambiarDatosDoble(actual, i);
                 intercambios++;
             }
             actual = actual.getSiguiente();
         }
 
         i = (i == null) ? cabeza : i.getSiguiente();
-        intercambiarDatos(cola, i);
+        intercambiarDatosDoble(cola, i);
         intercambios++;
 
-        NodoDoble<T> nodoAntesPivote = null;
-        if (i != cabeza) {
-            NodoDoble<T> buscador = cabeza;
-            while (buscador != null && buscador.getSiguiente() != i) {
-                buscador = buscador.getSiguiente();
-            }
-            nodoAntesPivote = buscador;
-        }
+        NodoDoble<T> nodoAntesPivote = (i != cabeza) ? i.getAnterior() : null;
 
         @SuppressWarnings("unchecked")
         NodoDoble<T>[] resultado = (NodoDoble<T>[]) new NodoDoble<?>[2];
@@ -228,6 +238,28 @@ public class OrdenamientoQuickSort<T extends Comparable<T>> implements Estrategi
         resultado[1] = nodoAntesPivote;
         return resultado;
     }
+    
+    private NodoDoble<T> obtenerPivoteAleatorioDoble(NodoDoble<T> inicio, NodoDoble<T> fin) {
+        int longitud = 0;
+        NodoDoble<T> actual = inicio;
+        while (actual != fin.getSiguiente()) {
+            longitud++;
+            actual = actual.getSiguiente();
+        }
+        int paso = (int) (Math.random() * longitud);
+        actual = inicio;
+        for (int i = 0; i < paso; i++) {
+            actual = actual.getSiguiente();
+        }
+        return actual;
+    }
+    
+    private void intercambiarDatosDoble(NodoDoble<T> a, NodoDoble<T> b) {
+        T temp = a.getDato();
+        a.setDato(b.getDato());
+        b.setDato(temp);
+    }
+
 
     @Override
     public ResultadoOrdenamiento ordenar(ListaEnlazadaSimpleCircular<T> lista) {

@@ -36,6 +36,6 @@ public class Controller {
         // Generar listas y ordenar
 
         GeneradorListas generador = new GeneradorListas();
-        generador.ejecutar(100, 1.5, estadisticasAleatorioSimple, estadisticasAleatorioDoble, estadisticasAleatorioCircular, estadisticasOrdenadoSimple, estadisticasOrdenadoDoble, estadisticasOrdenadoCircular, estadisticasInversoSimple, estadisticasInversoDoble, estadisticasInversoCircular);
+        generador.ejecutar(10, 1.5, estadisticasAleatorioSimple, estadisticasAleatorioDoble, estadisticasAleatorioCircular, estadisticasOrdenadoSimple, estadisticasOrdenadoDoble, estadisticasOrdenadoCircular, estadisticasInversoSimple, estadisticasInversoDoble, estadisticasInversoCircular);
     }
 }

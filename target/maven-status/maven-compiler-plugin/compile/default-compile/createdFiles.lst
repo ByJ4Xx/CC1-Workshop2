@@ -1,6 +1,4 @@
-com\politicos\model\GeneradorListasOrdenadas.class
 com\politicos\model\EstadisticasOrdenamiento.class
-com\politicos\model\GeneradorListasInversas.class
 com\politicos\model\OrdenamientoBurbuja.class
 com\politicos\model\NodoDoble.class
 com\politicos\model\GestorOrdenamientos.class

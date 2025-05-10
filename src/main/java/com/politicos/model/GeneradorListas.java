@@ -91,9 +91,12 @@ public class GeneradorListas {
 
                 // Siguiente iteración
                 n = (int) Math.round(n * tasaCrecimiento);
-                if (n > 10) {
+                // Descomentar el siguiente condicional si desea hacer pruebas o ver las estadisticas mas rapido
+                /*
+                if (n > 100000) {
                     throw new OutOfMemoryError();
                 }
+                */
             }
         } catch (OutOfMemoryError e) {
             System.err.println("Se ha agotado la memoria interna con tipo: " + tipo);
